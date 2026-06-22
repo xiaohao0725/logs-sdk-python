@@ -17,6 +17,9 @@ jobs:
       - name: Install build tools
         run: pip install build twine
 
+      - name: Inject SDK hash from git commit
+        run: echo "SDK_HASH = \"${{ github.sha }}\"" > src/logs_sdk/hash.py
+
       - name: Build package
         run: python -m build
 

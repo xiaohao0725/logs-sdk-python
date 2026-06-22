@@ -4,6 +4,7 @@ import httpx
 from .types import LogConfig, LogEntry, new_uuid
 from .buffer import RingBuffer
 from .offline import OfflineCache
+from .hash import SDK_HASH
 
 logger = logging.getLogger("logs-sdk")
 
@@ -76,7 +77,8 @@ class LogSDK:
         body = json.dumps({"logs": [e.to_dict() for e in entries]})
         resp = httpx.post(self.config.endpoint, content=body,
             headers={"Content-Type": "application/json", "X-API-Key": self.config.api_key,
-                     "X-SDK-Type": "python", "X-SDK-Version": "0.3.0"},
+                     "X-SDK-Type": "python", "X-SDK-Version": "0.3.0",
+                     "X-SDK-Hash": SDK_HASH},
             timeout=15)
         if resp.status_code not in (200, 201):
             raise Exception(f"服务端返回 {resp.status_code}")
