@@ -28,3 +28,10 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: twine upload dist/*
+
+      - name: Notify logs-server
+        run: |
+          curl -s -X POST https://api.logs.codexs.cn/api/v1/sdk/webhook \
+            -H "Content-Type: application/json" \
+            -H "X-Webhook-Secret: ${{ secrets.WEBHOOK_SECRET }}" \
+            -d "{\"sdk_type\":\"python\",\"sdk_version\":\"${GITHUB_REF#refs/tags/}\",\"sdk_hash\":\"${{ github.sha }}\""
