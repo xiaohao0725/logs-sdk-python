@@ -78,8 +78,10 @@ class LogEntry:
     tags: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
+        # Go 服务端期望 tags 为 JSON 对象（map[string]interface{}），
+        # 写入 ClickHouse 时服务端自行序列化为字符串
         d = asdict(self)
-        d["tags"] = json.dumps(self.tags) if self.tags else "{}"
+        d["tags"] = self.tags if self.tags else {}
         return d
 
 def new_uuid() -> str:
