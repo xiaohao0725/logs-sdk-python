@@ -66,7 +66,18 @@ class FastAPIMiddleware:
         entry.status_code = getattr(response, "status_code", 200)
         resp_headers = dict(getattr(response, "headers", {}))
         entry.response_headers = sanitize_headers(resp_headers)
-        entry.response_body_size = int(resp_headers.get("content-length", 0)) if resp_headers.get("content-length") else 0
+
+        # 捕获响应体
+        resp_body = b""
+        try:
+            if hasattr(response, "body"):
+                resp_body = response.body if isinstance(response.body, bytes) else str(response.body).encode("utf-8")
+                entry.response_body_size = len(resp_body)
+                entry.response_body = resp_body[:self.sdk.config.max_body_size].decode("utf-8", errors="replace")
+            else:
+                entry.response_body_size = int(resp_headers.get("content-length", 0))
+        except Exception:
+            entry.response_body_size = int(resp_headers.get("content-length", 0)) if resp_headers.get("content-length") else 0
 
         if entry.status_code >= 500:
             entry.is_error = True

@@ -88,7 +88,7 @@ def new_uuid() -> str:
     """生成 UUID v7，32 位十六进制无连字符"""
     return uuid.uuid4().hex  # Python uuid4 无原生 v7
 
-+
+def detect_client_type(ua: str, headers: dict) -> str:
     """根据 User-Agent 和请求头识别客户端类型"""
     ct = headers.get("x-client-type", "")
     if ct: return ct

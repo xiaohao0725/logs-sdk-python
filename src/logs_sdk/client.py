@@ -110,6 +110,7 @@ class LogSDK:
         body = json.dumps({"logs": [e.to_dict() for e in entries]})
         resp = httpx.post(self.config.endpoint, content=body,
             headers={"Content-Type": "application/json", "X-API-Key": self.config.api_key,
+                     "X-API-Secret": self.config.api_secret,
                      "X-SDK-Type": "python", "X-SDK-Version": "0.3.0",
                      "X-SDK-Hash": SDK_HASH},
             timeout=15)
