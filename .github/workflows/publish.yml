@@ -22,6 +22,9 @@ jobs:
       - name: Inject SDK hash from git commit
         run: echo "SDK_HASH = \"${{ github.sha }}\"" > src/logs_sdk/hash.py
 
+      - name: Sync version from tag
+        run: sed -i "s/^version = \".*\"/version = \"${GITHUB_REF#refs/tags/v}\"/" pyproject.toml
+
       - name: Build package
         run: python -m build
 
