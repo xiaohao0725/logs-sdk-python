@@ -88,7 +88,7 @@ def new_uuid() -> str:
     """生成 UUID v7，32 位十六进制无连字符"""
     return uuid.uuid4().hex  # Python uuid4 无原生 v7
 
-def detect_client_type(ua: str, headers: dict) -> str:
++
     """根据 User-Agent 和请求头识别客户端类型"""
     ct = headers.get("x-client-type", "")
     if ct: return ct
@@ -120,3 +120,22 @@ def sanitize_headers(headers: dict) -> str:
 def extract_api_version(path: str) -> str:
     m = re.match(r"/api/(v\d+)(/|$)", path)
     return m.group(1) if m else ""
+
+@dataclass
+class InfraLogEntry:
+    uuid: str = ""
+    timestamp: str = ""
+    project_slug: str = ""
+    source_type: str = ""
+    source_name: str = ""
+    host: str = ""
+    level: str = "info"
+    message: str = ""
+    metadata: str = "{}"
+    trace_id: str = ""
+    related_api_uuid: str = ""
+    is_error: bool = False
+    error_detail: str = ""
+
+    def to_dict(self) -> dict:
+        return asdict(self)

@@ -34,6 +34,39 @@ class LogSDK:
         entry.timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         self.buffer.push(entry)
 
+
+    def upload_infra_logs(self, entries: list) -> bool:
+        if not entries:
+            return True
+        for e in entries:
+            if not e.project_slug:
+                e.project_slug = self.config.project_slug
+            if not e.host:
+                e.host = self._hostname
+            if not e.timestamp:
+                e.timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        infra_endpoint = self.config.endpoint.replace("/logs", "/infra-logs")
+        body = json.dumps({"logs": [e.to_dict() for e in entries]})
+        try:
+            resp = requests.post(
+                infra_endpoint,
+                data=body,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-API-Key": self.config.api_key,
+                    "X-API-Secret": self.config.api_secret,
+                    "X-SDK-Type": "python",
+                    "X-SDK-Version": "0.3.0",
+                },
+                timeout=15,
+            )
+            return resp.status_code in (200, 201)
+        except Exception:
+            return False
+
+    def upload_infra_log(self, entry) -> bool:
+        return self.upload_infra_logs([entry])
+
     def close(self):
         """优雅关闭"""
         self._closed = True
