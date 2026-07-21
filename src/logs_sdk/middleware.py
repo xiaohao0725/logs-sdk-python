@@ -83,6 +83,8 @@ class FastAPIMiddleware:
             entry.is_error = True
             entry.error_type = "http_error"
             entry.error_message = entry.response_body
+            if entry.status_code >= 500:
+                entry.error_stack = traceback.format_stack()
 
         self.sdk.send(entry)
         return response
