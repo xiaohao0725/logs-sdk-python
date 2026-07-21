@@ -79,9 +79,10 @@ class FastAPIMiddleware:
         except Exception:
             entry.response_body_size = int(resp_headers.get("content-length", 0)) if resp_headers.get("content-length") else 0
 
-        if entry.status_code >= 500:
+        if entry.status_code >= 400:
             entry.is_error = True
             entry.error_type = "http_error"
+            entry.error_message = entry.response_body
 
         self.sdk.send(entry)
         return response
@@ -138,9 +139,10 @@ class FlaskMiddleware:
             response_iter = self.sdk.app(environ, _start_response)
             entry.duration_ms = int((time.time() - start) * 1000)
             entry.status_code = status_code
-            if status_code >= 500:
+            if status_code >= 400:
                 entry.is_error = True
                 entry.error_type = "http_error"
+                entry.error_message = entry.response_body
             self.sdk.send(entry)
             return response_iter
         except Exception as e:

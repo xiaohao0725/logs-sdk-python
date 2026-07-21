@@ -11,5 +11,5 @@
 from .client import LogSDK
 from .types import LogEntry, LogConfig
 
-__version__ = "0.3.0"
+__version__ = "0.3.3"
 __all__ = ["LogSDK", "LogEntry", "LogConfig"]
