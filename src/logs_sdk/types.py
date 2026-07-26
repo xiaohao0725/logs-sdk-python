@@ -1,7 +1,28 @@
 """SDK 核心类型定义 — 与 Go/Node.js SDK 完全对齐"""
 from dataclasses import dataclass, field, asdict
-from typing import Optional, Any
+from typing import Optional, Any, List
 import json, uuid, time, socket, os, re
+
+@dataclass
+class IngestResponse:
+    """服务端日志上报同步响应体 — sendBatch 解析服务端 JSON 后返回"""
+    received: int = 0       # 接收到的日志数量
+    uuids: List[str] = field(default_factory=list)  # 服务端确认收到的日志 UUID 列表
+    batch_id: str = ""      # 批次追踪 ID，用于状态查询和回调匹配
+
+@dataclass
+class CallbackItem:
+    """单条日志处理结果，由 Webhook 回调推送"""
+    uuid: str = ""      # 日志 UUID
+    uid: int = 0        # 服务端分配的内部顺序 ID（0=未分配）
+    status: str = ""    # 处理状态：persisted / deduplicated / invalid
+
+@dataclass
+class LogPersistedEvent:
+    """日志持久化完成事件，Webhook 回调的 data 字段"""
+    batch_id: str = ""
+    total: int = 0
+    items: List[CallbackItem] = field(default_factory=list)
 
 @dataclass
 class LogConfig:

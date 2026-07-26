@@ -1,7 +1,7 @@
 """核心客户端 — 缓冲管理、定时刷新、HTTP 上报、离线缓存"""
 import json, time, os, socket, threading, logging
 import httpx
-from .types import LogConfig, LogEntry, new_uuid
+from .types import LogConfig, LogEntry, new_uuid, IngestResponse
 from .buffer import RingBuffer
 from .offline import OfflineCache
 from .hash import SDK_HASH
@@ -107,6 +107,7 @@ class LogSDK:
                     time.sleep(0.5 * (2 ** attempt))
 
     def _send_batch(self, entries):
+        """HTTP POST 批量发送日志 — ★ 增强：解析响应体返回 IngestResponse"""
         body = json.dumps({"logs": [e.to_dict() for e in entries]})
         resp = httpx.post(self.config.endpoint, content=body,
             headers={"Content-Type": "application/json", "X-API-Key": self.config.api_key,
@@ -116,6 +117,18 @@ class LogSDK:
             timeout=15)
         if resp.status_code not in (200, 201):
             raise Exception(f"服务端返回 {resp.status_code}")
+        # ★ 解析服务端 JSON 响应体，返回结构化回执
+        try:
+            data = resp.json()
+            api_data = data.get("data", {})
+            return IngestResponse(
+                received=api_data.get("received", len(entries)),
+                uuids=api_data.get("uuids", []),
+                batch_id=api_data.get("batch_id", ""),
+            )
+        except (json.JSONDecodeError, KeyError, TypeError):
+            # 响应体无法解析（旧版服务端），回退
+            return IngestResponse(received=len(entries))
 
     def _start_flush_timer(self):
         def _loop():
