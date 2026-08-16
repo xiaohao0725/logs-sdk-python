@@ -96,6 +96,7 @@ class LogEntry:
     error_type: str = ""
     error_stack: str = ""
     panic_location: str = ""
+    is_callback: bool = False
     tags: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:

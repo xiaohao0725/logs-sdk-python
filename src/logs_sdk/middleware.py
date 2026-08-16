@@ -49,6 +49,7 @@ class FastAPIMiddleware:
         entry.api_version = extract_api_version(entry.path)
         entry.proto = request.scope.get("http_version", "1.1")
         entry.tls_version = getattr(request.scope.get("transport"), "get_extra_info", lambda x: "")(f"tls_version") or ""
+        entry.is_callback = _is_callback_request(headers, entry.user_agent)
 
         # 执行业务
         try:
@@ -119,6 +120,7 @@ class FlaskMiddleware:
         entry.origin = detect_origin(headers, entry.user_agent)
         entry.request_headers = sanitize_headers(headers)
         entry.api_version = extract_api_version(entry.path)
+        entry.is_callback = _is_callback_request(headers, entry.user_agent)
 
         # 读取请求体
         try:
@@ -155,3 +157,10 @@ class FlaskMiddleware:
             entry.duration_ms = int((time.time() - start) * 1000)
             self.sdk.send(entry)
             raise
+
+
+def _is_callback_request(headers: dict, user_agent: str) -> bool:
+    """判断请求是否由平台回调通知触发（X-Logs-Event 头或 logs-server-callback/ UA）。"""
+    if headers.get("x-logs-event"):
+        return True
+    return str(user_agent or "").startswith("logs-server-callback/")

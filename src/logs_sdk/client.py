@@ -41,8 +41,10 @@ class LogSDK:
         for e in entries:
             if not e.project_slug:
                 e.project_slug = self.config.project_slug
+            if not e.uuid:
+                e.uuid = new_uuid()
             if not e.host:
-                e.host = self._hostname
+                e.host = self.hostname
             if not e.timestamp:
                 e.timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         infra_endpoint = self.config.endpoint.replace("/logs", "/infra-logs")
@@ -56,7 +58,8 @@ class LogSDK:
                     "X-API-Key": self.config.api_key,
                     "X-API-Secret": self.config.api_secret,
                     "X-SDK-Type": "python",
-                    "X-SDK-Version": "0.3.0",
+                    "X-SDK-Version": "0.6.0",
+                    "X-SDK-Hash": SDK_HASH,
                 },
                 timeout=15,
             )
@@ -112,7 +115,7 @@ class LogSDK:
         resp = httpx.post(self.config.endpoint, content=body,
             headers={"Content-Type": "application/json", "X-API-Key": self.config.api_key,
                      "X-API-Secret": self.config.api_secret,
-                     "X-SDK-Type": "python", "X-SDK-Version": "0.3.0",
+                     "X-SDK-Type": "python", "X-SDK-Version": "0.6.0",
                      "X-SDK-Hash": SDK_HASH},
             timeout=15)
         if resp.status_code not in (200, 201):
